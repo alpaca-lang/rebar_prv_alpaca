@@ -33,6 +33,7 @@ do(State) ->
                   AppInfo ->
                       [AppInfo]
               end,
+    TestsEnabled = [P || P <- rebar_state:current_profiles(State), P == test],
     [begin
          %% Opts = rebar_app_info:opts(AppInfo),
          EBinDir = rebar_app_info:ebin_dir(AppInfo),
@@ -40,7 +41,7 @@ do(State) ->
          FoundFiles = rebar_utils:find_files(SourceDir, ".*\\.mlfe\$"),
 
          [file:write_file(filename:join(EBinDir, FileName), BeamBinary) ||
-             {compiled_module, ModuleName, FileName, BeamBinary} <- mlfe:compile({files, FoundFiles})]
+             {compiled_module, ModuleName, FileName, BeamBinary} <- mlfe:compile({files, FoundFiles}, TestsEnabled)]
      end || AppInfo <- Apps],
 
     {ok, State}.
