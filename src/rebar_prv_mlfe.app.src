@@ -1,10 +1,11 @@
 {application,rebar_prv_mlfe,
              [{description,"A rebar plugin"},
-              {vsn,"0.2.0"},
+              {vsn,"0.3.0"},
               {registered,[]},
               {applications,[kernel,stdlib]},
               {env,[]},
               {modules,[]},
               {maintainers,["Tristan Sloughter"]},
               {licenses,["Apache 2"]},
-              {links,[{"Github", "https://github.com/tsloughter/rebar_prv_mlfe"}]}]}.
+              {links,[{"Github",
+                       "https://github.com/tsloughter/rebar_prv_mlfe"}]}]}.
