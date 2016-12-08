@@ -1,4 +1,0 @@
-[{<<"alpaca">>,
-  {git,"https://github.com/alpaca-lang/alpaca.git",
-       {ref,"f251c8c534b21205b72f1d836d5ee8840519cb02"}},
-  0}].
