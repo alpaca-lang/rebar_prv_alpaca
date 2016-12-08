@@ -1,15 +1,11 @@
-{application, rebar_prv_alpaca,
- [{description, "A rebar plugin"},
-  {vsn, "0.1.0"},
-  {registered, []},
-  {applications,
-   [kernel,
-    stdlib
-   ]},
-  {env,[]},
-  {modules, []},
-
-  {maintainers, []},
-  {licenses, []},
-  {links, []}
- ]}.
+{application,rebar_prv_alpaca,
+             [{description,"A rebar plugin"},
+              {vsn,"0.3.0"},
+              {registered,[]},
+              {applications,[kernel,stdlib]},
+              {env,[]},
+              {modules,[]},
+              {maintainers,["Tristan Sloughter"]},
+              {licenses,["Apache 2"]},
+              {links,[{"Github",
+                       "https://github.com/tsloughter/rebar_prv_mlfe"}]}]}.
