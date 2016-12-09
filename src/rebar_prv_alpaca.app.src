@@ -8,4 +8,4 @@
               {maintainers,["Tristan Sloughter"]},
               {licenses,["Apache 2"]},
               {links,[{"Github",
-                       "https://github.com/tsloughter/rebar_prv_mlfe"}]}]}.
+                       "https://github.com/tsloughter/rebar_prv_alpaca"}]}]}.
