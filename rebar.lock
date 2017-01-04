@@ -1,0 +1,8 @@
+[{<<"alpaca">>,
+  {git,"https://github.com/alpaca-lang/alpaca.git",
+       {ref,"4338a2c79451c529c612911872acba765061814b"}},
+  0},
+ {<<"apcshell">>,
+  {git,"https://github.com/lepoetemaudit/alpaca-repl.git",
+       {ref,"ab5b8db4b6c0931fb6840d094533fc7f0d56d1c0"}},
+  0}].
