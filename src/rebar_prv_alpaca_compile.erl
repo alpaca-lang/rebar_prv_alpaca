@@ -40,8 +40,9 @@ do(State) ->
          SourceDir = filename:join(rebar_app_info:dir(AppInfo), "src"),
          FoundFiles = rebar_utils:find_files(SourceDir, ".*\\.alp\$"),
 
+         {ok, Compiled} = alpaca:compile({files, FoundFiles}, TestsEnabled),
          [file:write_file(filename:join(EBinDir, FileName), BeamBinary) ||
-             {compiled_module, ModuleName, FileName, BeamBinary} <- alpaca:compile({files, FoundFiles}, TestsEnabled)]
+             {compiled_module, ModuleName, FileName, BeamBinary} <- Compiled]
      end || AppInfo <- Apps],
 
     {ok, State}.
