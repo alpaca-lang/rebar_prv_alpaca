@@ -4,7 +4,7 @@
 
 -define(PROVIDER, compile).
 -define(NAMESPACE, alpaca).
--define(DEPS, [{default, app_discovery}]).
+-define(DEPS, [{default, lock}]).
 
 %% ===================================================================
 %% Public API
@@ -35,17 +35,31 @@ do(State) ->
               end,
     TestsEnabled = [P || P <- rebar_state:current_profiles(State), P == test],
     [begin
-         %% Opts = rebar_app_info:opts(AppInfo),
          EBinDir = rebar_app_info:ebin_dir(AppInfo),
+         Opts = rebar_app_info:opts(AppInfo),
          SourceDir = filename:join(rebar_app_info:dir(AppInfo), "src"),
+         Info = rebar_dir:src_dirs(Opts),         
+         
          FoundFiles = rebar_utils:find_files(SourceDir, ".*\\.alp\$"),
+         Deps = rebar_state:all_deps(State),
 
-         {ok, Compiled} = alpaca:compile({files, FoundFiles}, TestsEnabled),
-         [file:write_file(filename:join(EBinDir, FileName), BeamBinary) ||
-             {compiled_module, ModuleName, FileName, BeamBinary} <- Compiled]
+         AllFoundFiles = FoundFiles ++ lists:flatmap(fun gather_files/1, Deps),
+
+         case alpaca:compile({files, AllFoundFiles}, TestsEnabled) of
+             {ok, Compiled} ->
+                [file:write_file(filename:join(EBinDir, FileName), BeamBinary) ||
+                 {compiled_module, ModuleName, FileName, BeamBinary} <- Compiled];
+             {error, Reason} ->
+                 io:format(standard_error, "Compile error: ~s", format_error(Reason))
+         end
      end || AppInfo <- Apps],
 
     {ok, State}.
+
+gather_files(AppInfo) ->
+    SourceDir = filename:join(rebar_app_info:dir(AppInfo), "src"),
+    rebar_utils:find_files(SourceDir, ".*\\.alp\$").
+   
 
 -spec format_error(any()) ->  iolist().
 format_error(Reason) ->
