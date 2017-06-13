@@ -1,6 +1,6 @@
 -module(rebar_prv_alpaca_compile).
 
--export([init/1, do/1, format_error/1, compile_dir/5]).
+-export([init/1, do/1, format_error/1, compile_dir/6]).
 
 -define(PROVIDER, compile).
 -define(NAMESPACE, alpaca).
@@ -53,15 +53,23 @@ do(State) ->
     [begin
          EBinDir = rebar_app_info:ebin_dir(AppInfo),
          SourceDir = filename:join(rebar_app_info:dir(AppInfo), "src"),
+         Opts = dict:fetch(rebar_prv_alpaca, rebar_app_info:opts(AppInfo)),
          SourceFiles = rebar_utils:find_files(SourceDir, ".*\\.alp\$"),
          Deps = rebar_state:all_deps(State),
          LocalBeamFiles = rebar_utils:find_files(EBinDir, ".*\\.beam\$"),
          DependencyBeamFiles = lists:flatmap(fun gather_beam_files/1, Deps),
-         compile_dir(SourceFiles, LocalBeamFiles, DependencyBeamFiles, EBinDir, TestsEnabled)
+         compile_dir(
+           SourceFiles, 
+           LocalBeamFiles, 
+           DependencyBeamFiles, 
+           EBinDir, 
+           Opts,
+           TestsEnabled)
      end || AppInfo <- Apps],
     {ok, State}.
 
-compile_dir(SourceFiles, LocalBeamFiles, DependencyBeamFiles, EBinDir, TestsEnabled) ->
+compile_dir(SourceFiles, LocalBeamFiles, DependencyBeamFiles, 
+            EBinDir, Opts, TestsEnabled) ->
     %% Get Alpaca version so we can display it when compiling source
     Version = proplists:get_value(version, alpaca:compiler_info()),
     
@@ -70,6 +78,18 @@ compile_dir(SourceFiles, LocalBeamFiles, DependencyBeamFiles, EBinDir, TestsEnab
                  [L, _] -> L;
                  L -> L
              end,
+    
+    %% Validate any options passed to us
+    ValidOpts = is_list(Opts) andalso 
+                lists:all(fun({Key, _}) when is_atom(Key) -> true;
+                             (_) -> false end, Opts),
+    
+    case ValidOpts of
+        true -> ok;
+        false ->
+            OptsError = io_lib:format("Invalid Alpaca options list: ~p", [Opts]),
+            throw({error, {?MODULE, OptsError}})
+    end,
 
     %% initial pass - iterate over source files, extract their dependencies,
     %% and figure out if (the files themselves) require compilation -
@@ -163,7 +183,13 @@ compile_dir(SourceFiles, LocalBeamFiles, DependencyBeamFiles, EBinDir, TestsEnab
                     lists:map(fun filename:basename/1, Sources),
                     ", ")]),
 
-        case alpaca:compile({files, CompileFiles}, TestsEnabled) of
+        CompileOpts = TestsEnabled ++
+                case proplists:get_value(default_imports, Opts) of
+                    nil -> [];
+                    Imports -> [{default_imports, gather_imports(Imports)}]
+                end,
+
+        case alpaca:compile({files, CompileFiles}, CompileOpts) of
             {ok, Compiled} ->
                 [file:write_file(filename:join(EBinDir, FileName), BeamBinary) ||
                 {compiled_module, _, FileName, BeamBinary} <- Compiled];
@@ -213,6 +239,22 @@ gather_beam_files(Dep) ->
                                  _ -> true
                              end
                  end, PossibleAlpacaFiles).
+
+gather_imports(Imports) ->
+    ImportList = [begin
+                    code:ensure_modules_loaded([Mod]),
+                    case erlang:function_exported(Mod, Fun, 0) of
+                        true -> 
+                            erlang:apply(Mod, Fun, []);
+
+                        false ->
+                            Error = io_lib:format(
+                                        "Default imports: '~p:~p/0' doesn't exist", [Mod, Fun]),
+                            throw({error, {?MODULE, Error}})
+                    end 
+                  end|| {Mod, Fun} <- Imports],
+    {Funs, Types} = lists:unzip(ImportList),
+    {lists:flatten(Funs), lists:flatten(Types)}.
 
 -spec format_error(any()) ->  iolist().
 format_error(Reason) ->
