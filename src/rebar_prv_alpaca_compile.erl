@@ -48,12 +48,15 @@ do(State) ->
                       rebar_state:project_apps(State);
                   AppInfo ->
                       [AppInfo]
-              end,
+           end,
     TestsEnabled = [P || P <- rebar_state:current_profiles(State), P == test],
     [begin
          EBinDir = rebar_app_info:ebin_dir(AppInfo),
          SourceDir = filename:join(rebar_app_info:dir(AppInfo), "src"),
-         Opts = dict:fetch(rebar_prv_alpaca, rebar_app_info:opts(AppInfo)),
+         Opts = case dict:find(rebar_prv_alpaca, rebar_app_info:opts(AppInfo)) of
+             {ok, O} -> O;
+             error -> []
+         end,
          SourceFiles = rebar_utils:find_files(SourceDir, ".*\\.alp\$"),
          Deps = rebar_state:all_deps(State),
          LocalBeamFiles = rebar_utils:find_files(EBinDir, ".*\\.beam\$"),
@@ -185,7 +188,7 @@ compile_dir(SourceFiles, LocalBeamFiles, DependencyBeamFiles,
 
         CompileOpts = TestsEnabled ++
                 case proplists:get_value(default_imports, Opts) of
-                    nil -> [];
+                    undefined -> [];
                     Imports -> [{default_imports, gather_imports(Imports)}]
                 end,
 
@@ -258,7 +261,7 @@ gather_imports(Imports) ->
 
 -spec format_error(any()) ->  iolist().
 format_error(Reason) ->
-    io_lib:format("Alpaca compile error: ~s", [Reason]).
+    io_lib:format("Alpaca compile error: \n\033[0m~s", [Reason]).
 
 
 get_best_path([]) ->
