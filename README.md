@@ -1,12 +1,20 @@
-rebar_prv_alpaca
+Alpaca - Rebar3 Plugin
 =====
 
-rebar3 plugin for compiling [alpaca](https://github.com/alpaca-lang/alpaca) modules.
+A rebar3 plugin for compiling [alpaca](https://github.com/alpaca-lang/alpaca) modules.
+
+Alpaca modules will be compiled alongside Erlang ones. Pulling in other Alpaca 
+libraries as dependencies as well as performing incremental builds is also supported.
 
 Use
 ---
 
 From 0.2.8, Alpaca must be installed. Please see instructions at http://alpaca-lang.org.
+Essentially, you need to download an appropriate release from 
+https://github.com/alpaca-lang/alpaca/releases and ensure it is saved either in a well-known
+location (`/usr/lib/alpaca`, `/usr/local/lib/alpaca`, or `/opt/alpaca`) or install it
+wherever you wish and set the `ALPACA_ROOT` environmental variable to the path where you
+placed the Alpaca release.
 
 Add the plugin to your rebar config:
 
